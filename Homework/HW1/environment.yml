@@ -24,4 +24,7 @@ dependencies:
   - wheel=0.44.0=py310h06a4308_0
   - xz=5.4.6=h5eee18b_1
   - zlib=1.2.13=h5eee18b_1
+  - pip:
+      - numpy==2.1.1
+      - pillow==10.4.0
 prefix: /home/adsl-1-2/anaconda3/envs/1131-video-compression-HW1
