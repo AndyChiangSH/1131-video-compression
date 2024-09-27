@@ -32,12 +32,11 @@ def main():
     # Convert image to NumPy array
     img_np = np.array(img)
 
-    # Separate the channels
+    # Separate the RGB channels
     R = img_np[:, :, 0].astype(float)
     G = img_np[:, :, 1].astype(float)
     B = img_np[:, :, 2].astype(float)
 
-    # RGB Channels
     R = normalize_channel(R)
     G = normalize_channel(G)
     B = normalize_channel(B)
