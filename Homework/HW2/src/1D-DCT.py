@@ -46,8 +46,7 @@ def idct_1d(vector):
         sum_val = 0
         for u in range(N):
             c_u = 1 / np.sqrt(2) if u == 0 else 1
-            sum_val += c_u * vector[u] * \
-                np.cos((2 * x + 1) * u * np.pi / (2 * N))
+            sum_val += c_u * vector[u] * np.cos((2 * x + 1) * u * np.pi / (2 * N))
 
         result[x] = np.sqrt(2 / N) * sum_val
 
@@ -88,6 +87,8 @@ if __name__ == '__main__':
     print("1. Load the image and convert to grayscale...")
     image = cv2.imread('image/lena.png', cv2.IMREAD_GRAYSCALE)
     image = cv2.resize(image, (256, 256))
+    print("image.shape:", image.shape)
+    
     if image is None:
         raise ValueError(
             "Image not found. Make sure 'lena.png' is in the current directory.")
@@ -116,21 +117,5 @@ if __name__ == '__main__':
     print("5. Calculate PSNR (1D)...")
     psnr_value = psnr(image, reconstructed_image_1d)
     print(f'PSNR between original and reconstructed image (1D): {psnr_value:.2f} dB')
-
-    # 6. Validate the output using OpenCV's DCT function
-    print("6. Validate the output using OpenCV's DCT function...")
-    start_time = time.time()
-    dct_coefficients_opencv = cv2.dct(np.float32(image))
-    end_time = time.time()
-    print(f"OpenCV's DCT runtime: {end_time - start_time:.4f} seconds")
-
-    log_dct_opencv = np.log(np.abs(dct_coefficients_opencv) + 1)
-    plt.imshow(log_dct_opencv, cmap='gray')
-    plt.title('DCT Coefficients (OpenCV)')
-    plt.savefig('image/DCT_coefficients_OpenCV.png')
-    # plt.show()
-    
-    reconstructed_image_opencv = cv2.idct(np.float32(dct_coefficients_opencv))
-    cv2.imwrite('lena_reconstructed_OpenCV.png', reconstructed_image_opencv)
 
     print("END!")
