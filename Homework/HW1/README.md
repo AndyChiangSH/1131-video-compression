@@ -10,7 +10,7 @@
 - Please represent “lena.png” in terms of RGB, YUV, and YCbCr.
     1. RGB -> YUV:
         
-        https://wikimedia.org/api/rest_v1/media/math/render/svg/d419c358491015293e9e83a23c3cdba62be2da2f
+        ![HW1.png](https://wikimedia.org/api/rest_v1/media/math/render/svg/d419c358491015293e9e83a23c3cdba62be2da2f)
         
     2. RGB -> YCbCr: in the slides
 - In any programming language you are comfortable with (C/C++/Python/MATLAB).
