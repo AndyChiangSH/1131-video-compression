@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 import time
+from tqdm import tqdm
 
 
 # Implement fast 2D-DCT using two 1D-DCT
@@ -25,12 +26,12 @@ def two_dct_1d(image):
     dct_rows = np.zeros((M, N))
 
     # Apply 1D-DCT on rows
-    for i in range(M):
+    for i in tqdm(range(M), desc='1D-DCT on rows'):
         dct_rows[i, :] = dct_1d(image[i, :])
 
     # Apply 1D-DCT on columns
     dct = np.zeros((M, N))
-    for j in range(N):
+    for j in tqdm(range(N), desc='1D-DCT on columns'):
         dct[:, j] = dct_1d(dct_rows[:, j])
 
     return dct
@@ -58,12 +59,12 @@ def two_idct_1d(dct):
     idct_temp = np.zeros((M, N))
 
     # Apply 1D-IDCT on columns
-    for j in range(N):
+    for j in tqdm(range(N), desc='1D-IDCT on columns'):
         idct_temp[:, j] = idct_1d(dct[:, j])
 
     # Apply 1D-IDCT on rows
     idct = np.zeros((M, N))
-    for i in range(M):
+    for i in tqdm(range(M), desc='1D-IDCT on rows'):
         idct[i, :] = idct_1d(idct_temp[i, :])
 
     return np.clip(idct, 0, 255)
@@ -86,7 +87,7 @@ if __name__ == '__main__':
     # 1. Load the image and convert to grayscale
     print("1. Load the image and convert to grayscale...")
     image = cv2.imread('image/lena.png', cv2.IMREAD_GRAYSCALE)
-    image = cv2.resize(image, (64, 64))
+    image = cv2.resize(image, (256, 256))
     if image is None:
         raise ValueError(
             "Image not found. Make sure 'lena.png' is in the current directory.")
@@ -119,14 +120,17 @@ if __name__ == '__main__':
     # 6. Validate the output using OpenCV's DCT function
     print("6. Validate the output using OpenCV's DCT function...")
     start_time = time.time()
-    dct_opencv = cv2.dct(np.float32(image))
+    dct_coefficients_opencv = cv2.dct(np.float32(image))
     end_time = time.time()
     print(f"OpenCV's DCT runtime: {end_time - start_time:.4f} seconds")
 
-    log_dct_opencv = np.log(np.abs(dct_opencv) + 1)
+    log_dct_opencv = np.log(np.abs(dct_coefficients_opencv) + 1)
     plt.imshow(log_dct_opencv, cmap='gray')
     plt.title('DCT Coefficients (OpenCV)')
     plt.savefig('image/DCT_coefficients_OpenCV.png')
     # plt.show()
+    
+    reconstructed_image_opencv = cv2.idct(np.float32(dct_coefficients_opencv))
+    cv2.imwrite('lena_reconstructed_OpenCV.png', reconstructed_image_opencv)
 
     print("END!")
