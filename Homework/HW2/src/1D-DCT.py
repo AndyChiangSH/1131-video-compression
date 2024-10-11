@@ -8,17 +8,13 @@ from tqdm import tqdm
 # Implement fast 2D-DCT using two 1D-DCT
 def dct_1d(vector):
     N = len(vector)
-    result = np.zeros(N)
-
-    for u in range(N):
-        sum_val = 0
-        for x in range(N):
-            sum_val += vector[x] * np.cos((2 * x + 1) * u * np.pi / (2 * N))
-
-        c_u = 1 / np.sqrt(2) if u == 0 else 1
-        result[u] = np.sqrt(2 / N) * c_u * sum_val
-
-    return result
+    u = np.arange(N).reshape(-1, 1)
+    x = np.arange(N).reshape(1, -1)
+    c_u = np.array([1 / np.sqrt(2) if i == 0 else 1 for i in range(N)])
+    cos_x = np.cos((2 * x + 1) * u * np.pi / (2 * N))
+    dct = c_u * np.sqrt(2 / N) * np.sum(vector * cos_x, axis=1)
+    
+    return dct
 
 
 def two_dct_1d(image):
@@ -40,31 +36,27 @@ def two_dct_1d(image):
 # Implement fast 2D-IDCT using two 1D-IDCT
 def idct_1d(vector):
     N = len(vector)
-    result = np.zeros(N)
-
-    for x in range(N):
-        sum_val = 0
-        for u in range(N):
-            c_u = 1 / np.sqrt(2) if u == 0 else 1
-            sum_val += c_u * vector[u] * np.cos((2 * x + 1) * u * np.pi / (2 * N))
-
-        result[x] = np.sqrt(2 / N) * sum_val
-
-    return result
+    x = np.arange(N).reshape(-1, 1)
+    u = np.arange(N).reshape(1, -1)
+    c_u = np.array([1 / np.sqrt(2) if i == 0 else 1 for i in range(N)])
+    cos_x = np.cos((2 * x + 1) * u * np.pi / (2 * N))
+    idct = np.sqrt(2 / N) * np.sum(c_u * vector * cos_x, axis=1)
+    
+    return idct
 
 
 def two_idct_1d(dct):
     M, N = dct.shape
-    idct_temp = np.zeros((M, N))
+    idct_columns = np.zeros((M, N))
 
     # Apply 1D-IDCT on columns
     for j in tqdm(range(N), desc='1D-IDCT on columns'):
-        idct_temp[:, j] = idct_1d(dct[:, j])
+        idct_columns[:, j] = idct_1d(dct[:, j])
 
     # Apply 1D-IDCT on rows
     idct = np.zeros((M, N))
     for i in tqdm(range(M), desc='1D-IDCT on rows'):
-        idct[i, :] = idct_1d(idct_temp[i, :])
+        idct[i, :] = idct_1d(idct_columns[i, :])
 
     return np.clip(idct, 0, 255)
 
@@ -86,7 +78,7 @@ if __name__ == '__main__':
     # 1. Load the image and convert to grayscale
     print("1. Load the image and convert to grayscale...")
     image = cv2.imread('image/lena.png', cv2.IMREAD_GRAYSCALE)
-    image = cv2.resize(image, (256, 256))
+    # image = cv2.resize(image, (256, 256))
     print("image.shape:", image.shape)
     
     if image is None:
@@ -103,6 +95,7 @@ if __name__ == '__main__':
 
     # 3. Visualize the 1D-DCT coefficients in the log domain
     log_dct_1d = np.log(np.abs(dct_coefficients_1d) + 1)
+    plt.figure(figsize=(5, 5))
     plt.imshow(log_dct_1d, cmap='gray')
     plt.title('1D-DCT Coefficients')
     plt.savefig('image/DCT_coefficients_1D.png')

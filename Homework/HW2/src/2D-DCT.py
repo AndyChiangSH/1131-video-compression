@@ -8,38 +8,34 @@ from tqdm import tqdm
 # Implement 2D-DCT
 def dct_2d(image):
     M, N = image.shape
+    c = np.array([1 / np.sqrt(2) if i == 0 else 1 for i in range(max(M, N))])
+    x = np.arange(M).reshape(-1, 1)
+    y = np.arange(N).reshape(1, -1)
+
     dct = np.zeros((M, N))
-    
     for u in tqdm(range(M), desc='2D-DCT'):
         for v in range(N):
-            sum_val = 0
-            for x in range(M):
-                for y in range(N):
-                    sum_val += image[x, y] * np.cos((2 * x + 1) * u * np.pi / (2 * M)) * np.cos((2 * y + 1) * v * np.pi / (2 * N))
-            
-            c_u = 1 / np.sqrt(2) if u == 0 else 1
-            c_v = 1 / np.sqrt(2) if v == 0 else 1
-            dct[u, v] = (2 / N) * c_u * c_v * sum_val
-    
+            cos_x = np.cos((2 * x + 1) * u * np.pi / (2 * M))
+            cos_y = np.cos((2 * y + 1) * v * np.pi / (2 * N))
+            dct[u, v] = (2 / N) * c[u] * c[v] * np.sum(image * cos_x * cos_y)
+
     return dct
 
 
 # Implement 2D-IDCT
 def idct_2d(dct):
     M, N = dct.shape
+    c = np.array([1 / np.sqrt(2) if i == 0 else 1 for i in range(max(M, N))])
+    u = np.arange(M).reshape(-1, 1)
+    v = np.arange(N).reshape(1, -1)
+
     idct = np.zeros((M, N))
-    
     for x in tqdm(range(M), desc='2D-IDCT'):
         for y in range(N):
-            sum_val = 0
-            for u in range(M):
-                for v in range(N):
-                    c_u = 1 / np.sqrt(2) if u == 0 else 1
-                    c_v = 1 / np.sqrt(2) if v == 0 else 1
-                    sum_val += c_u * c_v * dct[u, v] * np.cos((2 * x + 1) * u * np.pi / (2 * M)) * np.cos((2 * y + 1) * v * np.pi / (2 * N))
-            
-            idct[x, y] = (2 / N) * sum_val
-    
+            cos_u = np.cos((2 * x + 1) * u * np.pi / (2 * M))
+            cos_v = np.cos((2 * y + 1) * v * np.pi / (2 * N))
+            idct[x, y] = (2 / N) * np.sum(c[u] * c[v] * dct * cos_u * cos_v)
+
     return np.clip(idct, 0, 255)
 
 
@@ -60,7 +56,7 @@ if __name__ == '__main__':
     # 1. Load the image and convert to grayscale
     print("1. Load the image and convert to grayscale...")
     image = cv2.imread('image/lena.png', cv2.IMREAD_GRAYSCALE)
-    image = cv2.resize(image, (256, 256))
+    # image = cv2.resize(image, (256, 256))
     print("image.shape:", image.shape)
     
     if image is None:
@@ -78,6 +74,7 @@ if __name__ == '__main__':
     # 3. Visualize the 2D-DCT coefficients in the log domain
     print("3. Visualize the 2D-DCT coefficients in the log domain...")
     log_dct_2d = np.log(np.abs(dct_coefficients_2d) + 1)
+    plt.figure(figsize=(5, 5))
     plt.imshow(log_dct_2d, cmap='gray')
     plt.title('2D-DCT Coefficients')
     plt.savefig('image/DCT_coefficients_2D.png')

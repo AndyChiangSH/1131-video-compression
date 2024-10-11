@@ -21,7 +21,7 @@ if __name__ == '__main__':
     # 1. Load the image and convert to grayscale
     print("1. Load the image and convert to grayscale...")
     image = cv2.imread('image/lena.png', cv2.IMREAD_GRAYSCALE)
-    image = cv2.resize(image, (256, 256))
+    # image = cv2.resize(image, (256, 256))
     print("image.shape:", image.shape)
     
     if image is None:
@@ -37,6 +37,7 @@ if __name__ == '__main__':
     print(f"OpenCV's DCT runtime: {end_time - start_time:.4f} seconds")
     
     log_dct_opencv = np.log(np.abs(dct_coefficients_opencv) + 1)
+    plt.figure(figsize=(5, 5))
     plt.imshow(log_dct_opencv, cmap='gray')
     plt.title("OpenCV's DCT Coefficients")
     plt.savefig('image/DCT_coefficients_OpenCV.png')
