@@ -1,0 +1,1 @@
+Full Search with Search Range 16: PSNR = 32.34, Runtime = 4.06 sec
