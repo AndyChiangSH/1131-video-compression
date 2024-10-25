@@ -1,1 +1,1 @@
-Three-Step Search with Search Range 32: PSNR = 28.99, Runtime = 0.00 sec
+Three-Step Search with Search Range 32: PSNR = 30.59, Runtime = 0.19 sec

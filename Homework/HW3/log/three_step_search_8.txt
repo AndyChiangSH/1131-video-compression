@@ -1,1 +1,1 @@
-Three-Step Search with Search Range 8: PSNR = 28.99, Runtime = 0.00 sec
+Three-Step Search with Search Range 8: PSNR = 30.81, Runtime = 0.12 sec

@@ -11,7 +11,7 @@ def three_step_search(img1, img2, block_size, search_range):
     reconstructed_frame = np.zeros_like(img1)
     residual = np.zeros_like(img1)
 
-    step_size = search_range // 2
+    initial_step_size = search_range // 2
 
     for i in range(0, height, block_size):
         for j in range(0, width, block_size):
@@ -19,6 +19,7 @@ def three_step_search(img1, img2, block_size, search_range):
             min_cost = float('inf')
             best_match = (0, 0)
             center_x, center_y = i, j
+            step_size = initial_step_size
 
             while step_size > 0:
                 for x in range(-step_size, step_size + 1, step_size):
@@ -79,7 +80,7 @@ if __name__ == '__main__':
         img1, img2, block_size, search_range)
     runtime = time.time() - start_time
     psnr = calculate_psnr(img1, reconstructed_frame)
-    print(f'Three-Step Search: PSNR = {psnr:.2f}, Runtime = {runtime:.2f} sec')
+    print(f'Three-Step Search with Search Range {search_range}: PSNR = {psnr:.2f}, Runtime = {runtime:.2f} sec')
     
     # Save to log
     print("> Save to log...")
