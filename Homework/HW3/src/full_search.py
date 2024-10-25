@@ -5,37 +5,50 @@ import time
 
 
 def full_search_block_matching(img1, img2, block_size, search_range):
+    # Get the dimensions of the image
     height, width = img1.shape
+    # Initialize motion vectors
     mv_x = np.zeros((height // block_size, width // block_size))
     mv_y = np.zeros((height // block_size, width // block_size))
+    # Initialize reconstructed frame and residual frame
     reconstructed_frame = np.zeros_like(img1)
     residual = np.zeros_like(img1)
 
+    # Iterate through each block in the image
     for i in range(0, height, block_size):
         for j in range(0, width, block_size):
+            # Extract the current block from the reference image
             block = img1[i:i + block_size, j:j + block_size]
             min_cost = float('inf')
             best_match = (0, 0)
 
+            # Search within the specified range for the best match
             for x in range(-search_range, search_range + 1):
                 for y in range(-search_range, search_range + 1):
                     ref_x = i + x
                     ref_y = j + y
+                    # Ensure the reference block is within image boundaries
                     if ref_x < 0 or ref_y < 0 or ref_x + block_size > height or ref_y + block_size > width:
                         continue
+                    # Extract candidate block from the target image
                     candidate_block = img2[ref_x:ref_x +
                                            block_size, ref_y:ref_y + block_size]
+                    # Calculate the cost using sum of squared differences (SSD)
                     cost = np.sum((block - candidate_block) ** 2)
 
+                    # Update the best match if a lower cost is found
                     if cost < min_cost:
                         min_cost = cost
                         best_match = (x, y)
 
+            # Store the motion vector
             mv_x[i // block_size, j // block_size] = best_match[0]
             mv_y[i // block_size, j // block_size] = best_match[1]
+            # Use the motion vector to reconstruct the frame
             ref_x, ref_y = i + best_match[0], j + best_match[1]
             reconstructed_frame[i:i + block_size, j:j +
                                 block_size] = img2[ref_x:ref_x + block_size, ref_y:ref_y + block_size]
+            # Calculate the residual between the original and reconstructed block
             residual[i:i + block_size, j:j + block_size] = block - \
                 reconstructed_frame[i:i + block_size, j:j + block_size]
 

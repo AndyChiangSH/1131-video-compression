@@ -5,45 +5,60 @@ import time
 
 
 def three_step_search(img1, img2, block_size, search_range):
+    # Get the dimensions of the image
     height, width = img1.shape
+    # Initialize motion vectors
     mv_x = np.zeros((height // block_size, width // block_size))
     mv_y = np.zeros((height // block_size, width // block_size))
+    # Initialize reconstructed frame and residual frame
     reconstructed_frame = np.zeros_like(img1)
     residual = np.zeros_like(img1)
 
-    initial_step_size = search_range // 2
+    # Set the initial step size for three-step search
+    initial_step_size = max(1, search_range // 2)
 
+    # Iterate through each block in the image
     for i in range(0, height, block_size):
         for j in range(0, width, block_size):
+            # Extract the current block from the reference image
             block = img1[i:i + block_size, j:j + block_size]
             min_cost = float('inf')
             best_match = (0, 0)
             center_x, center_y = i, j
             step_size = initial_step_size
 
+            # Perform the three-step search
             while step_size > 0:
                 for x in range(-step_size, step_size + 1, step_size):
                     for y in range(-step_size, step_size + 1, step_size):
                         ref_x = center_x + x
                         ref_y = center_y + y
+                        # Ensure the reference block is within image boundaries
                         if ref_x < 0 or ref_y < 0 or ref_x + block_size > height or ref_y + block_size > width:
                             continue
+                        # Extract candidate block from the target image
                         candidate_block = img2[ref_x:ref_x +
                                                block_size, ref_y:ref_y + block_size]
+                        # Calculate the cost using sum of squared differences (SSD)
                         cost = np.sum((block - candidate_block) ** 2)
 
+                        # Update the best match if a lower cost is found
                         if cost < min_cost:
                             min_cost = cost
                             best_match = (ref_x - i, ref_y - j)
                             center_x, center_y = ref_x, ref_y
 
+                # Halve the step size for the next iteration
                 step_size //= 2
 
+            # Store the motion vector
             mv_x[i // block_size, j // block_size] = best_match[0]
             mv_y[i // block_size, j // block_size] = best_match[1]
+            # Use the motion vector to reconstruct the frame
             ref_x, ref_y = i + best_match[0], j + best_match[1]
             reconstructed_frame[i:i + block_size, j:j +
                                 block_size] = img2[ref_x:ref_x + block_size, ref_y:ref_y + block_size]
+            # Calculate the residual between the original and reconstructed block
             residual[i:i + block_size, j:j + block_size] = block - \
                 reconstructed_frame[i:i + block_size, j:j + block_size]
 

@@ -1,1 +1,1 @@
-Full Search with Search Range 8: PSNR = 31.58, Runtime = 1.12 sec
+Full Search with Search Range 8: PSNR = 31.58, Runtime = 1.17 sec
