@@ -163,7 +163,8 @@ def process_image(q_table, image):
     # Apply DCT, Quantize, and Encode using the selected quantization table
     print(">> Apply DCT, Quantize, and Encode using the selected quantization table...")
     for block in blocks:
-        dct_block = dct_2d(block)
+        # dct_block = dct_2d(block)
+        dct_block = cv2.dct(np.float32(block))
         quantized_block = quantize(dct_block, q_table)
         encoded_blocks.append(run_length_encode(quantized_block))
 
@@ -175,7 +176,8 @@ def process_image(q_table, image):
             # Decode and apply IDCT
             decoded_rle = run_length_decode(encoded_blocks[block_idx])
             dequantized_block = inverse_quantize(decoded_rle.reshape((8, 8)), q_table)
-            reconstructed_block = idct_2d(dequantized_block)
+            # reconstructed_block = idct_2d(dequantized_block)
+            reconstructed_block = cv2.idct(np.float32(dequantized_block))
             reconstructed_image[i:i+8, j:j+8] = reconstructed_block
 
             block_idx += 1
@@ -271,6 +273,7 @@ if __name__ == '__main__':
     plt.title('Reconstructed Image (Table 2)')
     plt.imshow(reconstructed_image_2, cmap='gray')
 
+    plt.savefig("image/reconstructed_plt.png")
     plt.show()
     
     print("END!")
