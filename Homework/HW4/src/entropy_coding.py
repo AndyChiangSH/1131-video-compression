@@ -225,33 +225,33 @@ if __name__ == '__main__':
     # Process image using both quantization tables
     print("> Processing with Quantization Table 1...")
     reconstructed_image_1, encoded_blocks_1, running_time_1, psnr_1 = process_image(quantization_table_1, image)
-    with open('image/encoded_image_1.pkl', 'wb') as f:
+    with open('encoded_image/quantization_table_1.pkl', 'wb') as f:
         pickle.dump(encoded_blocks_1, f)
-    encoded_size_1 = os.path.getsize('image/encoded_image_1.pkl')
+    encoded_size_1 = os.path.getsize('encoded_image/quantization_table_1.pkl')
 
     print("> Processing with Quantization Table 2...")
     reconstructed_image_2, encoded_blocks_2, running_time_2, psnr_2 = process_image(quantization_table_2, image)
-    with open('image/encoded_image_2.pkl', 'wb') as f:
+    with open('encoded_image/quantization_table_2.pkl', 'wb') as f:
         pickle.dump(encoded_blocks_2, f)
-    encoded_size_2 = os.path.getsize('image/encoded_image_2.pkl')
+    encoded_size_2 = os.path.getsize('encoded_image/quantization_table_2.pkl')
 
     print("> Processing with Quantization Table JPEG...")
     reconstructed_image_jpeg, encoded_blocks_jpeg, running_time_jpeg, psnr_jpeg = process_image(quantization_table_jpeg, image)
-    with open('image/encoded_image_jpeg.pkl', 'wb') as f:
+    with open('encoded_image/quantization_table_jpeg.pkl', 'wb') as f:
         pickle.dump(encoded_blocks_jpeg, f)
-    encoded_size_jpeg = os.path.getsize('image/encoded_image_jpeg.pkl')
+    encoded_size_jpeg = os.path.getsize('encoded_image/quantization_table_jpeg.pkl')
 
     # Print comparison metrics
     print(f"Quantization Table 1: Encoded Size = {encoded_size_1} bytes, Running Time = {running_time_1:.2f} seconds, PSNR = {psnr_1:.2f} dB")
     print(f"Quantization Table 2: Encoded Size = {encoded_size_2} bytes, Running Time = {running_time_2:.2f} seconds, PSNR = {psnr_2:.2f} dB")
     print(f"Quantization Table JPEG: Encoded Size = {encoded_size_jpeg} bytes, Running Time = {running_time_jpeg:.2f} seconds, PSNR = {psnr_jpeg:.2f} dB")
 
-    # Save the reconstructed image
-    print("> Save the reconstructed image...")
-    cv2.imwrite("image/original_image.png", image)
-    cv2.imwrite("image/reconstructed_image_1.png", reconstructed_image_1)
-    cv2.imwrite("image/reconstructed_image_2.png", reconstructed_image_2)
-    cv2.imwrite("image/reconstructed_image_jpeg.png", reconstructed_image_jpeg)
+    # Save the decoded image
+    print("> Save the decoded image...")
+    cv2.imwrite("decoded_image/original.png", image)
+    cv2.imwrite("decoded_image/quantization_table_1.png", reconstructed_image_1)
+    cv2.imwrite("decoded_image/quantization_table_2.png", reconstructed_image_2)
+    cv2.imwrite("decoded_image/quantization_table_jpeg.png", reconstructed_image_jpeg)
     
     # Plot original vs reconstructed images for visual analysis
     print("> Plot original vs reconstructed images for visual analysis...")
@@ -272,7 +272,7 @@ if __name__ == '__main__':
     plt.title('Reconstructed Image (JEPG)')
     plt.imshow(reconstructed_image_jpeg, cmap='gray')
 
-    plt.savefig("image/reconstructed_plt.png")
+    plt.savefig("decoded_image/comparison.png")
     plt.show()
     
     print("END!")
