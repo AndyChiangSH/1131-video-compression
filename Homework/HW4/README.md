@@ -17,8 +17,6 @@
     - **VC_HW4_[student_id].pdf**: Report PDF
     - **VC_HW4_[student_id].zip**: Zipped source code (C/C++/Python/MATLAB) and a **README** file
 
-![image/quantization_tables.png](image/quantization_tables.png)
-
 ## How to run?
 
 1. Move into this folder
