@@ -210,6 +210,17 @@ if __name__ == '__main__':
         [59, 59, 59, 59, 59, 59, 59, 59],
         [59, 59, 59, 59, 59, 59, 59, 59]
     ])
+    
+    quantization_table_jpeg = np.array([
+        [16, 11, 10, 16, 24, 40, 51, 61],
+        [12, 12, 14, 19, 26, 58, 60, 55],
+        [14, 13, 16, 24, 40, 57, 69, 56],
+        [14, 17, 22, 29, 51, 87, 80, 62],
+        [18, 22, 37, 56, 68, 109, 103, 77],
+        [24, 35, 55, 64, 81, 104, 113, 92],
+        [49, 64, 78, 87, 103, 121, 120, 101],
+        [72, 92, 95, 98, 112, 100, 103, 99]
+    ])
 
     # Process image using both quantization tables
     print("> Processing with Quantization Table 1...")
@@ -224,30 +235,42 @@ if __name__ == '__main__':
         pickle.dump(encoded_blocks_2, f)
     encoded_size_2 = os.path.getsize('image/encoded_image_2.pkl')
 
+    print("> Processing with Quantization Table JPEG...")
+    reconstructed_image_jpeg, encoded_blocks_jpeg, running_time_jpeg, psnr_jpeg = process_image(quantization_table_jpeg, image)
+    with open('image/encoded_image_jpeg.pkl', 'wb') as f:
+        pickle.dump(encoded_blocks_jpeg, f)
+    encoded_size_jpeg = os.path.getsize('image/encoded_image_jpeg.pkl')
+
     # Print comparison metrics
     print(f"Quantization Table 1: Encoded Size = {encoded_size_1} bytes, Running Time = {running_time_1:.2f} seconds, PSNR = {psnr_1:.2f} dB")
     print(f"Quantization Table 2: Encoded Size = {encoded_size_2} bytes, Running Time = {running_time_2:.2f} seconds, PSNR = {psnr_2:.2f} dB")
+    print(f"Quantization Table JPEG: Encoded Size = {encoded_size_jpeg} bytes, Running Time = {running_time_jpeg:.2f} seconds, PSNR = {psnr_jpeg:.2f} dB")
 
     # Save the reconstructed image
     print("> Save the reconstructed image...")
     cv2.imwrite("image/original_image.png", image)
-    cv2.imwrite("image/reconstructed_image_2.png", reconstructed_image_2)
     cv2.imwrite("image/reconstructed_image_1.png", reconstructed_image_1)
+    cv2.imwrite("image/reconstructed_image_2.png", reconstructed_image_2)
+    cv2.imwrite("image/reconstructed_image_jpeg.png", reconstructed_image_jpeg)
     
     # Plot original vs reconstructed images for visual analysis
     print("> Plot original vs reconstructed images for visual analysis...")
-    plt.figure(figsize=(15, 5))
-    plt.subplot(1, 3, 1)
+    plt.figure(figsize=(20, 5))
+    plt.subplot(1, 4, 1)
     plt.title('Original Image')
     plt.imshow(image, cmap='gray')
 
-    plt.subplot(1, 3, 2)
-    plt.title('Reconstructed Image (Table 1)')
+    plt.subplot(1, 4, 2)
+    plt.title('Reconstructed Image (1)')
     plt.imshow(reconstructed_image_1, cmap='gray')
 
-    plt.subplot(1, 3, 3)
-    plt.title('Reconstructed Image (Table 2)')
+    plt.subplot(1, 4, 3)
+    plt.title('Reconstructed Image (2)')
     plt.imshow(reconstructed_image_2, cmap='gray')
+    
+    plt.subplot(1, 4, 4)
+    plt.title('Reconstructed Image (JEPG)')
+    plt.imshow(reconstructed_image_jpeg, cmap='gray')
 
     plt.savefig("image/reconstructed_plt.png")
     plt.show()
