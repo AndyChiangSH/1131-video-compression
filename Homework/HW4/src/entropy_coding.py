@@ -7,20 +7,36 @@ import time
 
 
 # Implement custom DCT for an 8x8 block
-def dct_2d(block):
-    """Apply 2D DCT to an 8x8 block."""
-    dct_block = np.zeros((8, 8), dtype=np.float32)
-    for u in range(8):
-        for v in range(8):
-            alpha_u = 1 / np.sqrt(2) if u == 0 else 1
-            alpha_v = 1 / np.sqrt(2) if v == 0 else 1
-            sum_value = 0
-            for x in range(8):
-                for y in range(8):
-                    sum_value += block[x, y] * np.cos((2 * x + 1) * u * np.pi / 16) * np.cos((2 * y + 1) * v * np.pi / 16)
-            dct_block[u, v] = 0.25 * alpha_u * alpha_v * sum_value
+# def dct_2d(block):
+#     """Apply 2D DCT to an 8x8 block."""
+#     dct_block = np.zeros((8, 8), dtype=np.float32)
+#     for u in range(8):
+#         for v in range(8):
+#             alpha_u = 1 / np.sqrt(2) if u == 0 else 1
+#             alpha_v = 1 / np.sqrt(2) if v == 0 else 1
+#             sum_value = 0
+#             for x in range(8):
+#                 for y in range(8):
+#                     sum_value += block[x, y] * np.cos((2 * x + 1) * u * np.pi / 16) * np.cos((2 * y + 1) * v * np.pi / 16)
+#             dct_block[u, v] = 0.25 * alpha_u * alpha_v * sum_value
             
-    return dct_block
+#     return dct_block
+
+
+def dct_2d(block):
+    M, N = block.shape
+    c = np.array([1 / np.sqrt(2) if i == 0 else 1 for i in range(max(M, N))])
+    x = np.arange(M).reshape(-1, 1)
+    y = np.arange(N).reshape(1, -1)
+
+    dct = np.zeros((M, N))
+    for u in range(M):
+        for v in range(N):
+            cos_x = np.cos((2 * x + 1) * u * np.pi / (2 * M))
+            cos_y = np.cos((2 * y + 1) * v * np.pi / (2 * N))
+            dct[u, v] = (2 / N) * c[u] * c[v] * np.sum(block * cos_x * cos_y)
+
+    return dct
 
 
 # Quantize using quantization tables
@@ -81,22 +97,38 @@ def inverse_quantize(block, q_table):
 
 
 # Implement custom IDCT for an 8x8 block
-def idct_2d(block):
-    """Apply 2D IDCT to an 8x8 block."""
-    idct_block = np.zeros((8, 8), dtype=np.float32)
-    for x in range(8):
-        for y in range(8):
-            sum_value = 0
-            for u in range(8):
-                for v in range(8):
-                    alpha_u = 1 / np.sqrt(2) if u == 0 else 1
-                    alpha_v = 1 / np.sqrt(2) if v == 0 else 1
-                    sum_value += alpha_u * alpha_v * \
-                        block[u, v] * np.cos((2 * x + 1) * u * np.pi / 16) * \
-                        np.cos((2 * y + 1) * v * np.pi / 16)
-            idct_block[x, y] = 0.25 * sum_value
+# def idct_2d(block):
+#     """Apply 2D IDCT to an 8x8 block."""
+#     idct_block = np.zeros((8, 8), dtype=np.float32)
+#     for x in range(8):
+#         for y in range(8):
+#             sum_value = 0
+#             for u in range(8):
+#                 for v in range(8):
+#                     alpha_u = 1 / np.sqrt(2) if u == 0 else 1
+#                     alpha_v = 1 / np.sqrt(2) if v == 0 else 1
+#                     sum_value += alpha_u * alpha_v * \
+#                         block[u, v] * np.cos((2 * x + 1) * u * np.pi / 16) * \
+#                         np.cos((2 * y + 1) * v * np.pi / 16)
+#             idct_block[x, y] = 0.25 * sum_value
             
-    return np.round(idct_block).astype(np.uint8)
+#     return np.round(idct_block).astype(np.uint8)
+
+
+def idct_2d(block):
+    M, N = block.shape
+    c = np.array([1 / np.sqrt(2) if i == 0 else 1 for i in range(max(M, N))])
+    u = np.arange(M).reshape(-1, 1)
+    v = np.arange(N).reshape(1, -1)
+
+    idct = np.zeros((M, N))
+    for x in range(M):
+        for y in range(N):
+            cos_u = np.cos((2 * x + 1) * u * np.pi / (2 * M))
+            cos_v = np.cos((2 * y + 1) * v * np.pi / (2 * N))
+            idct[x, y] = (2 / N) * np.sum(c[u] * c[v] * block * cos_u * cos_v)
+
+    return np.clip(idct, 0, 255)
 
 
 # Peak Signal-to-Noise Ratio (PSNR)
@@ -220,6 +252,7 @@ if __name__ == '__main__':
 
     # Save the reconstructed image
     print("> Save the reconstructed image...")
+    cv2.imwrite("image/original_image.png", image)
     cv2.imwrite("image/reconstructed_image_2.png", reconstructed_image_2)
     cv2.imwrite("image/reconstructed_image_1.png", reconstructed_image_1)
     
@@ -239,6 +272,5 @@ if __name__ == '__main__':
     plt.imshow(reconstructed_image_2, cmap='gray')
 
     plt.show()
-    plt.savefig("reconstructed_plt.png")
     
     print("END!")
