@@ -9,34 +9,19 @@ import time
 # Implement custom DCT for an 8x8 block
 def dct_2d(block):
     """Apply 2D DCT to an 8x8 block."""
-    dct_block = np.zeros((8, 8), dtype=np.float32)
-    for u in range(8):
-        for v in range(8):
-            alpha_u = 1 / np.sqrt(2) if u == 0 else 1
-            alpha_v = 1 / np.sqrt(2) if v == 0 else 1
-            sum_value = 0
-            for x in range(8):
-                for y in range(8):
-                    sum_value += block[x, y] * np.cos((2 * x + 1) * u * np.pi / 16) * np.cos((2 * y + 1) * v * np.pi / 16)
-            dct_block[u, v] = (2 / 8) * alpha_u * alpha_v * sum_value
-            
-    return dct_block
+    M, N = block.shape
+    c = np.array([1 / np.sqrt(2) if i == 0 else 1 for i in range(max(M, N))])
+    x = np.arange(M).reshape(-1, 1)
+    y = np.arange(N).reshape(1, -1)
 
+    dct = np.zeros((M, N))
+    for u in range(M):
+        for v in range(N):
+            cos_x = np.cos((2 * x + 1) * u * np.pi / (2 * M))
+            cos_y = np.cos((2 * y + 1) * v * np.pi / (2 * N))
+            dct[u, v] = (2 / N) * c[u] * c[v] * np.sum(block * cos_x * cos_y)
 
-# def dct_2d(block):
-#     M, N = block.shape
-#     c = np.array([1 / np.sqrt(2) if i == 0 else 1 for i in range(max(M, N))])
-#     x = np.arange(M).reshape(-1, 1)
-#     y = np.arange(N).reshape(1, -1)
-
-#     dct = np.zeros((M, N))
-#     for u in range(M):
-#         for v in range(N):
-#             cos_x = np.cos((2 * x + 1) * u * np.pi / (2 * M))
-#             cos_y = np.cos((2 * y + 1) * v * np.pi / (2 * N))
-#             dct[u, v] = (2 / N) * c[u] * c[v] * np.sum(block * cos_x * cos_y)
-
-#     return dct
+    return dct
 
 
 # Quantize using quantization tables
@@ -63,7 +48,7 @@ def run_length_encode(block):
     zigzag_array = zigzag_scan(block)
     rle = []
     zero_count = 0
-    
+
     for i in range(len(zigzag_array)):
         if zigzag_array[i] == 0:
             zero_count += 1
@@ -81,12 +66,22 @@ def run_length_encode(block):
 
 # Run Length Decoding
 def run_length_decode(rle):
-    """Run-Length Decode a list into a 1D block."""
-    block = []
+    """Run-Length Decode a list into an 8x8 block using zigzag scan."""
+    flat_block = np.zeros(64, dtype=np.int32)
+    position = 0
+
     for value, count in rle:
-        block.extend([value] * count)
-        
-    return np.array(block[:64])
+        for _ in range(count):
+            flat_block[position] = value
+            position += 1
+
+    # Use zigzag order to reconstruct the 8x8 block
+    block = np.zeros((8, 8), dtype=np.int32)
+    for i in range(64):
+        index = np.unravel_index(zigzag_indices[i], (8, 8))
+        block[index] = flat_block[i]
+
+    return block
 
 
 # Inverse Quantize
@@ -99,36 +94,19 @@ def inverse_quantize(block, q_table):
 # Implement custom IDCT for an 8x8 block
 def idct_2d(block):
     """Apply 2D IDCT to an 8x8 block."""
-    idct_block = np.zeros((8, 8), dtype=np.float32)
-    for x in range(8):
-        for y in range(8):
-            sum_value = 0
-            for u in range(8):
-                for v in range(8):
-                    alpha_u = 1 / np.sqrt(2) if u == 0 else 1
-                    alpha_v = 1 / np.sqrt(2) if v == 0 else 1
-                    sum_value += alpha_u * alpha_v * \
-                        block[u, v] * np.cos((2 * x + 1) * u * np.pi / 16) * \
-                        np.cos((2 * y + 1) * v * np.pi / 16)
-            idct_block[x, y] = (2 / 8) * sum_value
-            
-    return np.round(idct_block).astype(np.uint8)
+    M, N = block.shape
+    c = np.array([1 / np.sqrt(2) if i == 0 else 1 for i in range(max(M, N))])
+    u = np.arange(M).reshape(-1, 1)
+    v = np.arange(N).reshape(1, -1)
 
+    idct = np.zeros((M, N))
+    for x in range(M):
+        for y in range(N):
+            cos_u = np.cos((2 * x + 1) * u * np.pi / (2 * M))
+            cos_v = np.cos((2 * y + 1) * v * np.pi / (2 * N))
+            idct[x, y] = (2 / N) * np.sum(c[u] * c[v] * block * cos_u * cos_v)
 
-# def idct_2d(block):
-#     M, N = block.shape
-#     c = np.array([1 / np.sqrt(2) if i == 0 else 1 for i in range(max(M, N))])
-#     u = np.arange(M).reshape(-1, 1)
-#     v = np.arange(N).reshape(1, -1)
-
-#     idct = np.zeros((M, N))
-#     for x in range(M):
-#         for y in range(N):
-#             cos_u = np.cos((2 * x + 1) * u * np.pi / (2 * M))
-#             cos_v = np.cos((2 * y + 1) * v * np.pi / (2 * N))
-#             idct[x, y] = (2 / N) * np.sum(c[u] * c[v] * block * cos_u * cos_v)
-
-#     return np.clip(idct, 0, 255)
+    return np.clip(idct, 0, 255)
 
 
 # Peak Signal-to-Noise Ratio (PSNR)
@@ -163,8 +141,7 @@ def process_image(q_table, image):
     # Apply DCT, Quantize, and Encode using the selected quantization table
     print(">> Apply DCT, Quantize, and Encode using the selected quantization table...")
     for block in blocks:
-        # dct_block = dct_2d(block)
-        dct_block = cv2.dct(np.float32(block))
+        dct_block = dct_2d(block)
         quantized_block = quantize(dct_block, q_table)
         encoded_blocks.append(run_length_encode(quantized_block))
 
@@ -176,8 +153,7 @@ def process_image(q_table, image):
             # Decode and apply IDCT
             decoded_rle = run_length_decode(encoded_blocks[block_idx])
             dequantized_block = inverse_quantize(decoded_rle.reshape((8, 8)), q_table)
-            # reconstructed_block = idct_2d(dequantized_block)
-            reconstructed_block = cv2.idct(np.float32(dequantized_block))
+            reconstructed_block = idct_2d(dequantized_block)
             reconstructed_image[i:i+8, j:j+8] = reconstructed_block
 
             block_idx += 1
